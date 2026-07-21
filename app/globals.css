@@ -1,4 +1,6 @@
 @import "tailwindcss";
+.phases{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 18px}.phases button{border:1px solid var(--line);background:#fffdf8;padding:12px 14px;display:flex;align-items:center;gap:10px;color:#65737a;font-size:12px;font-weight:900;cursor:pointer}.phases button b{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#e7e1d7}.phases button.active{background:var(--ink);color:#fff;border-color:var(--ink)}.phases button.active b{background:#fff;color:var(--ink)}.phases button.active.solves{background:var(--green);border-color:var(--green)}.phases button.active.worsens{background:var(--orange);border-color:var(--orange)}.solvedGuide{stroke:var(--green);stroke-width:2.5}.solvedLabel{font:800 13px Arial;fill:var(--green)}
+.tabs{grid-template-columns:repeat(2,1fr)!important}
 .dwlBoundary{stroke:#d56638;stroke-width:2.5;stroke-dasharray:6 4}
 .preset{grid-column:1/-1;border:1px solid var(--orange);background:#fff8f2;color:#a34523;padding:9px 10px;font-size:11px;font-weight:900;cursor:pointer}
 :root{--ink:#172b36;--paper:#f7f2e9;--cream:#fffdf8;--teal:#176b87;--green:#27745d;--purple:#7358a6;--orange:#d56638;--line:#d8d0c1}
