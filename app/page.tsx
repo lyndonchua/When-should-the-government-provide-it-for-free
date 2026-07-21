@@ -20,30 +20,59 @@ const cases = {
   },
 } as const;
 
+function Case2Diagram({ phase }: { phase: Phase }) {
+  const initial = phase === "initial";
+  const solves = phase === "solves";
+  return <svg className="diagram" viewBox="0 0 720 470" role="img" aria-label={`Case 2: ${initial ? "initial market failure" : solves ? "MPC shift corrects market failure" : "MPC shifts too far right"}`}>
+    <defs>
+      <pattern id="case2X" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="8" stroke="#176b87" strokeWidth="3" /></pattern>
+      <pattern id="case2Y" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="8" stroke="#d56638" strokeWidth="3" /></pattern>
+      <marker id="case2Arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#172b36" /></marker>
+    </defs>
+    <line className="axis" x1="100" y1="400" x2="100" y2="40" markerEnd="url(#case2Arrow)"/>
+    <line className="axis" x1="100" y1="400" x2="670" y2="400" markerEnd="url(#case2Arrow)"/>
+    <text className="axisLabel" x="94" y="24">Costs / Benefits</text><text className="axisLabel" x="625" y="432">Quantity</text><text x="82" y="422">0</text>
+    <path className="curve mpb" d="M 180 180 L 430 400"/>
+    <path className="curve msb" d={phase === "worsens" ? "M 300 50 L 610 370" : "M 300 50 L 560 318"}/>
+    <path className="curve mpc" d={phase === "worsens" ? "M 210 350 L 610 47" : "M 210 350 L 500 130"}/>
+    <text className="label blue" x="400" y="365">MPB</text><text className="label purple" x="525" y="300">MSB</text><text className="label green" x="445" y="165">MPC = MSC</text>
+    {initial && <><polygon points="300,284 300,50 430,184" fill="url(#case2X)" opacity=".8"/><text className="areaLabel" x="345" y="170">DWL X</text></>}
+    <line className="guide" x1="300" y1="400" x2="300" y2="284"/><text className="qLabel" x="300" y="424">Qp</text>
+    <line className="guide" x1="430" y1="400" x2="430" y2="184"/><text className="qLabel" x="430" y="424">Qs</text>
+    {!initial && <><line className="shiftArrow" x1="340" y1="245" x2={solves ? "500" : "575"} y2="245" markerEnd="url(#case2Arrow)"/><text className="shiftText" x={solves ? "365" : "400"} y="230">MPC shifts rightwards</text></>}
+    {solves && <><path className="curve shifted" d="M 430 400 L 590 250"/><text className="label shiftedText" x="560" y="255">MPC′</text><circle className="point" cx="430" cy="400" r="5"/><text className="qLabel star" x="430" y="447">Qs = Qa</text><text className="solvedLabel" x="445" y="195">MSB = MSC</text><text className="solvedLabel" x="445" y="390">MPB = MPC′</text></>}
+    {phase === "worsens" && <><path className="curve shifted" d="M 610 400 L 700 315"/><text className="label shiftedText" x="655" y="330">MPC′</text><line className="guide" x1="610" y1="400" x2="610" y2="64"/><text className="qLabel star" x="610" y="424">Qa</text><polygon points="430,184 610,47 610,370" fill="url(#case2Y)" opacity=".78"/><text className="areaLabel y" x="545" y="190">DWL Y &gt; X</text></>}
+    <circle className="point" cx="300" cy="284" r="5"/><circle className="point" cx="430" cy="184" r="5"/>
+  </svg>;
+}
+
 function Diagram({ mode, phase, meb, mpcShift }: { mode: CaseKey; phase: Phase; meb: number; mpcShift: number }) {
   const g = useMemo(() => {
-    const top = 38, base = 400;
+    const expanded = mode === "parallel" && phase === "worsens";
+    const top = 38, base = expanded ? 300 : 400;
     const mpb = (q: number) => 100 - q;
     const msb = (q: number) => 100 + meb - q;
-    const mpcSlope = mode === "horizontal" ? 0.75 : 1;
+    const mpcSlope = 0.75;
     const mpc = (q: number) => 10 + mpcSlope * q;
     const qp = 90 / (1 + mpcSlope);
     const qs = (90 + meb) / (1 + mpcSlope);
     const qstar = 100;
-    const scaleX = mode === "parallel" ? 4.8 : 4.3;
+    const scaleX = expanded ? 3.45 : mode === "parallel" ? 4.8 : 4.3;
     const midpoint = (qp + qs) / 2;
-    const left = mode === "parallel" ? Math.max(60, 370 - midpoint * scaleX) : 100;
+    const left = expanded ? 80 : mode === "parallel" ? Math.max(60, 370 - midpoint * scaleX) : 100;
     const right = 675;
     const x = (q: number) => left + q * scaleX;
-    const scaleY = Math.min(3.15, 340 / (55 + meb));
+    const scaleY = expanded ? 1.8 : Math.min(3.15, 340 / (55 + meb));
     const y = (v: number) => base - v * scaleY;
     return { left, right, top, base, x, y, mpb, msb, mpc, qp, qs, qstar };
   }, [meb, mode, phase]);
   const { left, right, top, base, x, y, mpb, msb, mpc, qp, qs, qstar } = g;
-  const qAfter = phase === "initial" ? qp : mode === "parallel" ? (90 + mpcShift) / 2 : qstar;
-  const mpcPrime = (q: number) => 10 + q - mpcShift;
-  const mpcPrimeIntercept = Math.max(0, mpcShift - 10);
-  const path = (fn: (q: number) => number, from = 0, to = mode === "parallel" ? 120 : 105) => `M ${x(from)} ${y(fn(from))} L ${x(to)} ${y(fn(to))}`;
+  const mpcSlope = 0.75;
+  const qAfter = phase === "initial" ? qp : mode === "parallel" ? (90 + mpcShift) / (1 + mpcSlope) : qstar;
+  const mpcPrime = (q: number) => 10 + mpcSlope * q - mpcShift;
+  const mpcPrimeIntercept = Math.max(0, (mpcShift - 10) / mpcSlope);
+  const expanded = mode === "parallel" && phase === "worsens";
+  const path = (fn: (q: number) => number, from = 0, to = expanded ? 170 : mode === "parallel" ? 120 : 105) => `M ${x(from)} ${y(fn(from))} L ${x(to)} ${y(fn(to))}`;
   const under = `${x(qp)},${y(msb(qp))} ${x(qp)},${y(mpc(qp))} ${x(qs)},${y(mpc(qs))}`;
   const underMidX = (x(qp) + x(qp) + x(qs)) / 3;
   const underMidY = (y(msb(qp)) + y(mpc(qp)) + y(mpc(qs))) / 3;
@@ -51,6 +80,7 @@ function Diagram({ mode, phase, meb, mpcShift }: { mode: CaseKey; phase: Phase; 
   const overMidQ = (qs + qstar) / 2;
   const overMidY = (y(msb(overMidQ)) + y(mpc(overMidQ))) / 2;
   const policyDwl = `${x(qs)},${y(msb(qs))} ${x(qAfter)},${y(msb(qAfter))} ${x(qAfter)},${y(mpc(qAfter))}`;
+  if (mode === "parallel") return <Case2Diagram phase={phase}/>;
   return (
     <svg className="diagram" viewBox="0 0 720 470" role="img" aria-label={`Economic diagram: ${cases[mode].title}`}>
       <defs>
@@ -60,15 +90,14 @@ function Diagram({ mode, phase, meb, mpcShift }: { mode: CaseKey; phase: Phase; 
       </defs>
       <line className="axis" x1={left} y1={base} x2={left} y2={top} markerEnd="url(#arrow)" />
       <line className="axis" x1={left} y1={base} x2={right} y2={base} markerEnd="url(#arrow)" />
-      <text className="axisLabel" x={left - 6} y={22}>Costs / Benefits</text><text className="axisLabel" x={right - 30} y={430}>Quantity</text><text x={left - 18} y={420}>0</text>
+      <text className="axisLabel" x={left - 6} y={22}>Costs / Benefits</text><text className="axisLabel" x={right - 30} y={base + 30}>Quantity</text><text x={left - 18} y={base + 20}>0</text>
       <path className="curve msb" d={path(msb, 5, 115)} /><path className="curve mpb" d={path(mpb, 0, 100)} /><path className="curve mpc" d={path(mpc, 0, 120)} />
       <text className="label purple" x={x(83)} y={y(msb(83)) - 12}>MSB</text><text className="label blue" x={x(76)} y={y(mpb(76)) + 24}>MPB</text><text className="label green" x={x(72)} y={y(mpc(72)) - 13}>MPC = MSC</text>
       {phase === "initial" && <><polygon points={under} fill="url(#hatchX)" opacity=".8" /><text className="areaLabel" x={underMidX} y={underMidY}>DWL X</text></>}
-      {[qp, qs].map((q, i) => <g key={q}><line className="guide" x1={x(q)} y1={base} x2={x(q)} y2={i ? y(mpc(q)) : y(mpb(q))} />{!(i === 1 && mode === "horizontal" && phase === "solves") && <text className="qLabel" x={x(q)} y={424}>{i ? "Qs" : "Qp"}</text>}</g>)}
-      {mode !== "parallel" && <><line className="mebLine" x1={x(qs) + 8} y1={y(mpb(qs))} x2={x(qs) + 8} y2={y(msb(qs))} /><text className="label orange" x={x(qs) + 18} y={(y(mpb(qs)) + y(msb(qs))) / 2}>MEB</text></>}
-      {mode !== "parallel" && phase !== "initial" && <><line className="freeLine" x1={left} y1={base} x2={x(qstar)} y2={base} /><text className="freeLabel" x={left + 8} y={base - 10}>MPC′ = 0 (free)</text><line className="guide" x1={x(qstar)} y1={base} x2={x(qstar)} y2={y(mpb(qstar))} /><text className="qLabel star" x={x(qstar)} y={424}>{phase === "solves" ? "Qs = Q*" : "Q*"}</text></>}
-      {mode === "parallel" && phase !== "initial" && <><path className="curve shifted" d={path(mpcPrime, mpcPrimeIntercept, 120)} /><text className="label shiftedText" x={x(Math.min(112, mpcPrimeIntercept + 12))} y={y(mpcPrime(Math.min(112, mpcPrimeIntercept + 12))) - 12}>MPC′</text><line className="guide" x1={x(qAfter)} y1={base} x2={x(qAfter)} y2={y(mpc(qAfter))} /><text className="qLabel star" x={x(qAfter)} y={424}>{phase === "solves" ? "Qs = Qa" : "Qa"}</text>{phase === "worsens" && <><polygon points={policyDwl} fill="url(#hatchY)" opacity=".78" /><text className="areaLabel y" x={x((qs + qAfter) / 2)} y={y(mpc((qs + qAfter) / 2)) - 15}>DWL Y &gt; X</text></>}</>}
-      {mode !== "parallel" && phase === "worsens" && <><polygon points={over} fill="url(#hatchY)" opacity=".78" /><line className="dwlBoundary" x1={x(qstar)} y1={y(msb(qstar))} x2={x(qstar)} y2={y(mpc(qstar))} /><text className="areaLabel y" x={x(overMidQ)} y={overMidY}>DWL Y &gt; X</text></>}
+      {[qp, qs].map((q, i) => <g key={q}><line className="guide" x1={x(q)} y1={base} x2={x(q)} y2={i ? y(mpc(q)) : y(mpb(q))} />{!(i === 1 && phase === "solves") && <text className="qLabel" x={x(q)} y={base + 24}>{i ? "Qs" : "Qp"}</text>}</g>)}
+      <line className="mebLine" x1={x(qs) + 8} y1={y(mpb(qs))} x2={x(qs) + 8} y2={y(msb(qs))} /><text className="label orange" x={x(qs) + 18} y={(y(mpb(qs)) + y(msb(qs))) / 2}>MEB</text>
+      {phase !== "initial" && <><line className="freeLine" x1={left} y1={base} x2={x(qstar)} y2={base} /><text className="freeLabel" x={left + 8} y={base - 10}>MPC′ = 0 (free)</text><line className="guide" x1={x(qstar)} y1={base} x2={x(qstar)} y2={y(mpb(qstar))} /><text className="qLabel star" x={x(qstar)} y={base + 24}>{phase === "solves" ? "Qs = Q*" : "Q*"}</text></>}
+      {phase === "worsens" && <><polygon points={over} fill="url(#hatchY)" opacity=".78" /><line className="dwlBoundary" x1={x(qstar)} y1={y(msb(qstar))} x2={x(qstar)} y2={y(mpc(qstar))} /><text className="areaLabel y" x={x(overMidQ)} y={overMidY}>DWL Y &gt; X</text></>}
       {phase === "solves" && <><line className="guide solvedGuide" x1={x(qs)} y1={base} x2={x(qs)} y2={y(mpc(qs))} /><text className="solvedLabel" x={x(qs) + 12} y={y(mpc(qs)) - 18}>Allocative efficiency</text></>}
       <circle className="point" cx={x(qp)} cy={y(mpb(qp))} r="5" /><circle className="point" cx={x(qs)} cy={y(mpc(qs))} r="5" />
     </svg>
@@ -78,12 +107,12 @@ function Diagram({ mode, phase, meb, mpcShift }: { mode: CaseKey; phase: Phase; 
 export default function Home() {
   const [mode, setMode] = useState<CaseKey>("horizontal");
   const [phase, setPhase] = useState<Phase>("initial");
-  const displayMeb = mode === "horizontal" ? phase === "initial" ? 40 : phase === "solves" ? 85 : 20 : 40;
-  const mpcShift = phase === "initial" ? 0 : phase === "solves" ? displayMeb : Math.min(110, displayMeb + 60);
-  const solvedMpcSlope = mode === "horizontal" ? 0.75 : 1;
+  const displayMeb = mode === "horizontal" && phase === "worsens" ? 20 : 85;
+  const mpcShift = phase === "initial" ? 0 : phase === "solves" ? 85 : mode === "parallel" ? 180 : 0;
+  const solvedMpcSlope = 0.75;
   const qp = Math.round(90 / (1 + solvedMpcSlope));
   const qs = Math.round((90 + displayMeb) / (1 + solvedMpcSlope));
-  const after = phase === "initial" ? qp : mode === "horizontal" ? 100 : phase === "solves" ? qs : Math.round((90 + mpcShift) / 2);
+  const after = phase === "initial" ? qp : mode === "horizontal" ? 100 : Math.round((90 + mpcShift) / (1 + solvedMpcSlope));
   const gap = after - qs;
   const verdict = phase === "initial" ? "MARKET FAILURE: UNDERCONSUMPTION" : phase === "solves" ? "MARKET FAILURE CORRECTED" : "POLICY WORSENS MARKET FAILURE";
   return <main>
