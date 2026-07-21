@@ -102,52 +102,52 @@ function Case2Diagram({ phase }: { phase: Phase }) {
         <text x="82" y="422">
           0
         </text>
-        <path className="curve mpb" d="M 160 140 L 500 400" />
-        <path className="curve msb" d="M 270 60 L 560 330" />
-        <path className="curve mpc" d="M 210 350 L 520 100" />
-        <text className="label blue" x="455" y="375">
+        <path className="curve mpb" d="M 160 196 L 500 400" />
+        <path className="curve msb" d="M 160 86 L 560 326" />
+        <path className="curve mpc" d="M 210 336 L 540 131" />
+        <text className="label blue" x="455" y="382">
           MPB
         </text>
-        <text className="label purple" x="520" y="315">
+        <text className="label purple" x="525" y="316">
           MSB
         </text>
-        <text className="label green" x="470" y="125">
+        <text className="label green" x="505" y="126">
           MPC = MSC
         </text>
         <polygon
-          points="300,285 300,110 390,210"
+          points="300,280 300,170 390,224"
           fill="url(#case2Stage3X)"
           opacity=".8"
         />
-        <text className="areaLabel" x="330" y="205">
+        <text className="areaLabel" x="326" y="212">
           X
         </text>
         <polygon
-          points="390,210 500,120 500,350"
+          points="390,224 500,156 500,290"
           fill="url(#case2Stage3Y)"
           opacity=".82"
         />
-        <text className="areaLabel y" x="465" y="225">
-          DWL Y &gt; X
+        <text className="areaLabel y" x="463" y="230">
+          Y
         </text>
         <line className="freeLine" x1="100" y1="400" x2="500" y2="400" />
         <text className="freeLabel" x="112" y="387">
           MPC′ = P = 0
         </text>
-        <line className="guide" x1="300" y1="400" x2="300" y2="285" />
+        <line className="guide" x1="300" y1="400" x2="300" y2="170" />
         <text className="qLabel" x="300" y="424">
           Qp
         </text>
-        <line className="guide" x1="390" y1="400" x2="390" y2="210" />
+        <line className="guide" x1="390" y1="400" x2="390" y2="224" />
         <text className="qLabel" x="390" y="424">
           Qs
         </text>
-        <line className="guide" x1="500" y1="400" x2="500" y2="120" />
+        <line className="guide" x1="500" y1="400" x2="500" y2="156" />
         <text className="qLabel star" x="500" y="424">
           Q*
         </text>
-        <circle className="point" cx="300" cy="285" r="5" />
-        <circle className="point" cx="390" cy="210" r="5" />
+        <circle className="point" cx="300" cy="280" r="5" />
+        <circle className="point" cx="390" cy="224" r="5" />
         <circle className="point" cx="500" cy="400" r="5" />
       </svg>
     );
